@@ -8,12 +8,56 @@ var height = canvas.height = size;
 
 const rowCount = 21;
 const colCount = 21;
-const cellSize = Math.floor(size / rowCount);
+const cellSize = Math.floor(size / (Math.sqrt(2) * rowCount));
 
-width = canvas.width = cellSize * colCount;
-height = canvas.height = cellSize * rowCount;
+
+let angle = 0;
+const rotationSpeed = 0.01;
+let rotateLeft = false;
+let rotateRight = false;
+let intervalId;
 
 var grid = createGrid();
+
+generateMaze(Math.floor(rowCount/2), Math.floor(colCount/2));
+
+window.addEventListener('keydown', function(event) {
+  switch (event.key) {
+    case 'a':
+      rotateLeft = true;
+      break;
+    case 'd':
+      rotateRight = true;
+      break;
+  }
+  // Start the interval when a key is pressed
+  if (!intervalId) {
+    intervalId = setInterval(function() {
+      if (rotateLeft) {
+        angle -= rotationSpeed;
+      }
+      if (rotateRight) {
+        angle += rotationSpeed;
+      }
+    }, 10);
+  }
+});
+
+window.addEventListener('keyup', function(event) {
+  switch (event.key) {
+    case 'a':
+      rotateLeft = false;
+      break;
+    case 'd':
+      rotateRight = false;
+      break;
+  }
+  // Clear the interval when both keys are released
+  if (!rotateLeft && !rotateRight) {
+    clearInterval(intervalId);
+    intervalId = null;
+  }
+});
 
 function createGrid() {
   var grid = [];
@@ -49,27 +93,32 @@ function generateMaze(x, y) {
   }
 }
 
-// Start the maze generation with an initial cell
-generateMaze(Math.floor(rowCount/2), Math.floor(colCount/2));
 
 function drawGrid() {
+  ctx.translate(width / 2, height / 2);
+  ctx.rotate(angle);
+  ctx.translate(-width / 2, -height / 2);
+
+  const offsetX = (width - colCount * cellSize) / 2;
+  const offsetY = (height - rowCount * cellSize) / 2;
+
   for (var i = 0; i < rowCount; i++) {
     for (var j = 0; j < colCount; j++) {
       ctx.beginPath();
-      ctx.rect(j * cellSize, i * cellSize, cellSize, cellSize);
+      ctx.rect(offsetX + j * cellSize, offsetY + i * cellSize, cellSize, cellSize);
       ctx.fillStyle = grid[i][j].isWall ? 'rgb(100,100,100)' : 'white';
       ctx.fill();
       ctx.closePath();
     }
   }
+  
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
 }
 
 function draw () {
   ctx.clearRect(0, 0, width, height);
-
   drawGrid();
   requestAnimationFrame(draw);
 }
 
 draw();
-
