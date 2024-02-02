@@ -1,26 +1,40 @@
+///// Variable Declarations /////
+
+// Get the canvas and context
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 
-// Make sure the canvas is a square
+// Set the size of the canvas
 const size = Math.min(window.innerWidth, window.innerHeight);
 var width = canvas.width = size;
 var height = canvas.height = size;
 
+// Set the size of the maze grid
 const rowCount = 21;
 const colCount = 21;
 const cellSize = Math.floor(size / (Math.sqrt(2) * rowCount));
 
-
+// Initialize the rotation angle and speed
 let angle = 0;
 const rotationSpeed = 0.01;
+
+// Flags to track whether the 'a' or 'd' key is being held down
 let rotateLeft = false;
 let rotateRight = false;
+
+// ID of the interval for updating the rotation angle
 let intervalId;
 
+// Generate the maze grid
 var grid = createGrid();
-
 generateMaze(Math.floor(rowCount/2), Math.floor(colCount/2));
 
+
+
+///// Event Listeners /////
+
+
+// Listen for keydown events
 window.addEventListener('keydown', function(event) {
   switch (event.key) {
     case 'a':
@@ -43,6 +57,7 @@ window.addEventListener('keydown', function(event) {
   }
 });
 
+// Listen for keyup events
 window.addEventListener('keyup', function(event) {
   switch (event.key) {
     case 'a':
@@ -59,6 +74,12 @@ window.addEventListener('keyup', function(event) {
   }
 });
 
+
+
+///// Functions /////
+
+
+// Function to create the initial grid
 function createGrid() {
   var grid = [];
   for (var i = 0; i < rowCount; i++) {
@@ -76,7 +97,7 @@ function createGrid() {
   return grid;
 }
 
-// Maze generation using DFS
+// Function to generate the maze using DFS
 function generateMaze(x, y) {
   let dir = [[0, 1], [0, -1], [-1, 0], [1, 0]];
   dir.sort(() => Math.random() - 0.5);
@@ -93,7 +114,7 @@ function generateMaze(x, y) {
   }
 }
 
-
+// Function to draw the grid
 function drawGrid() {
   ctx.translate(width / 2, height / 2);
   ctx.rotate(angle);
@@ -115,6 +136,7 @@ function drawGrid() {
   ctx.setTransform(1, 0, 0, 1, 0, 0);
 }
 
+// Function to draw the frame
 function draw () {
   ctx.clearRect(0, 0, width, height);
   drawGrid();
