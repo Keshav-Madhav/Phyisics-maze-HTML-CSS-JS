@@ -6,7 +6,7 @@ const ctx = canvas.getContext('2d');
 const body = document.querySelector('body');
 const nextButton = document.getElementById('next');
 nextButton.style.display = 'none';
-const stageDisplay = document.getElementById('level');
+const stageDisplay = document.getElementById('stage');
 
 // Set the size of the canvas
 const size = Math.min(window.innerWidth, window.innerHeight);
