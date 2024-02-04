@@ -32,6 +32,8 @@ let intervalId;
 // initialize gravity
 let gravity = 0.3;
 
+let mazeCompletedCheck = false;
+
 // Colors
 const backgroundColor = 'rgb(38, 84, 124)'; // YInMn Blue
 const wallColor = 'rgb(30, 065, 085)'; // Deep Teal
@@ -96,7 +98,7 @@ window.addEventListener('keyup', function(event) {
 
 // Listen for deviceorientation events
 window.addEventListener('deviceorientation', function(event) {
-  angle = event.beta;
+  angle = event.gamma;
 });
 
 // Listen for touchstart events
@@ -334,6 +336,27 @@ function checkCollision(){
   }
 }
 
+// Function to check if the ball has reached the end of the maze
+function mazeCompleted() {
+  if (!mazeCompletedCheck && ball.x > offsetX + (colCount - 1) * cellSize - ball.radius && ball.y > offsetY + (rowCount - 1) * cellSize - ball.radius) {
+    startAnimation();
+
+    mazeCompletedCheck = true;
+  }
+
+  if (mazeCompletedCheck) {
+    ctx.save();
+    ctx.translate(width/2, height/2);
+    ctx.rotate(-angle * Math.PI / 180);
+    ctx.font = "40px Arial";
+    ctx.fillStyle = "white";
+    ctx.fillText("Maze Completed!", -150, 0);
+    ctx.restore();
+  }
+}
+
+
+
 // Function to draw the grid and the ball
 function draw () {
   ctx.clearRect(0, 0, width, height);
@@ -343,6 +366,8 @@ function draw () {
   ball.update();
 
   checkCollision();
+
+  mazeCompleted();
 
   requestAnimationFrame(draw);
 }
