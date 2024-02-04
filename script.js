@@ -14,9 +14,12 @@ const rowCount = 21;
 const colCount = 21;
 const cellSize = Math.floor(size / (Math.sqrt(2) * rowCount));
 
+const offsetX = (width - colCount * cellSize) / 2;
+const offsetY = (height - rowCount * cellSize) / 2;
+
 // Initialize the rotation angle and speed
 let angle = 0;
-const rotationSpeed = 0.01;
+const rotationSpeed = 0.6;
 
 // Flags to track whether the 'a' or 'd' key is being held down
 let rotateLeft = false;
@@ -24,6 +27,9 @@ let rotateRight = false;
 
 // ID of the interval for updating the rotation angle
 let intervalId;
+
+// initialize gravity
+const gravity = 0.3;
 
 // Generate the maze grid
 var grid = createGrid();
@@ -76,6 +82,90 @@ window.addEventListener('keyup', function(event) {
 
 
 
+///// Classes /////
+
+
+class Ball {
+  constructor(x, y, radius, dx, dy) {
+    this.x = x;
+    this.y = y;
+    this.radius = radius;
+    this.dx = dx;
+    this.dy = dy;
+    this.friction = 0.99;
+    this.elasticity = 0.35;
+  }
+
+  draw() {
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
+    ctx.fillStyle = 'red';
+    ctx.fill();
+  }
+
+  update() {
+    this.draw();
+  
+    this.x += this.dx;
+    this.y += this.dy;
+  
+    this.applyGravity();
+  
+    this.dx *= this.friction;
+    this.dy *= this.friction;
+
+    this.checkBounds();
+  }
+
+  applyGravity() {
+    if (this.y + this.radius < height || this.dy < 0) {
+      // Convert the angle from degrees to radians
+      let rad = angle * Math.PI / 180;
+      
+      // Calculate the gravity components
+      let gx = gravity * Math.sin(rad);
+      let gy = gravity * Math.cos(rad);
+      
+      // Apply the gravity components to the ball's velocity
+      this.dx += gx;
+      this.dy += gy;
+    }
+  }
+  
+
+  checkBounds() {
+    // Calculate the boundaries of the grid
+    const gridLeft = offsetX;
+    const gridRight = offsetX + colCount * cellSize;
+    const gridTop = offsetY;
+    const gridBottom = offsetY + rowCount * cellSize;
+  
+    // Check if the ball is hitting the left or right boundary of the grid
+    if (this.x - this.radius < gridLeft || this.x + this.radius > gridRight) {
+      if(this.x - this.radius < gridLeft)
+        this.x = gridLeft + this.radius;
+      else
+        this.x = gridRight - this.radius;
+
+      this.dx = -this.dx * this.elasticity;
+    }
+  
+    // Check if the ball is hitting the top or bottom boundary of the grid
+    if (this.y - this.radius < gridTop || this.y + this.radius > gridBottom) {
+      if(this.y - this.radius < gridTop)
+        this.y = gridTop + this.radius;
+      else
+        this.y = gridBottom - this.radius;
+      this.dy = -this.dy * this.elasticity;
+    }
+  }
+}
+
+// Create the ball at the center of the 0,0 cell
+const ball = new Ball(offsetX + cellSize/2, offsetY + cellSize/2, cellSize/2.2, 0, 0);
+
+
+
 ///// Functions /////
 
 
@@ -116,9 +206,7 @@ function generateMaze(x, y) {
 
 // Function to draw the grid
 function drawGrid() {
-  ctx.translate(width / 2, height / 2);
-  ctx.rotate(angle);
-  ctx.translate(-width / 2, -height / 2);
+  canvas.style.transform = 'rotate(' + angle + 'deg)';
 
   const offsetX = (width - colCount * cellSize) / 2;
   const offsetY = (height - rowCount * cellSize) / 2;
@@ -132,14 +220,14 @@ function drawGrid() {
       ctx.closePath();
     }
   }
-  
-  ctx.setTransform(1, 0, 0, 1, 0, 0);
 }
+
 
 // Function to draw the frame
 function draw () {
   ctx.clearRect(0, 0, width, height);
   drawGrid();
+  ball.update();
   requestAnimationFrame(draw);
 }
 
