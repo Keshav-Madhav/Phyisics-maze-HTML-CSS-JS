@@ -14,7 +14,7 @@ var width = canvas.width = size;
 var height = canvas.height = size;
 
 // Predefined stages
-let stages = [[9,9], [9,9], [9,13], [13, 13], [13,13], [13, 17], [17, 17], [21,21], [21, 21], [21, 21] [25, 25], [25, 25] [29, 29], [29, 29], [33, 33], [33, 33], [33, 33], [53, 53], [53, 53], [53, 53], [53, 53]]
+let stages = [[106,106], [9,9], [9,13], [13, 13], [13,13], [13, 17], [17, 17], [21,21], [21, 21], [21, 21] [25, 25], [25, 25] [29, 29], [29, 29], [33, 33], [33, 33], [33, 33], [53, 53], [53, 53], [53, 53], [53, 53]]
 let stage = 0;
 
 // Set the size of the maze grid
@@ -402,6 +402,9 @@ function resetMaze() {
   rowCount = stages[stage][0];
   colCount = stages[stage][1];
   cellSize = Math.floor(size / (Math.sqrt(2) * rowCount));
+
+  // Display the current stage
+  stageDisplay.innerHTML = (stage + 1) + " of " + stages.length + 1;
 
   // Recalculate offsetX and offsetY
   offsetX = (width - colCount * cellSize) / 2;
