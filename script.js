@@ -1,8 +1,9 @@
 ///// Variable Declarations /////
 
-// Get the canvas and context
+// Getting Dom elements
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
+const body = document.querySelector('body');
 
 // Set the size of the canvas
 const size = Math.min(window.innerWidth, window.innerHeight);
@@ -31,10 +32,20 @@ let intervalId;
 // initialize gravity
 let gravity = 0.3;
 
+// Colors
+const backgroundColor = 'rgb(38, 84, 124)'; // YInMn Blue
+const wallColor = 'rgb(30, 065, 085)'; // Deep Teal
+const pathColor = 'rgb(200, 225, 245)'; // Light Sky Blue
+const startColor = 'rgb(0, 128, 0)'; // Green
+const endColor = 'rgb(128, 0, 128)'; // Purple
+const ballColor = 'rgb(255, 105, 180)'; // Hot Pink
+
+// Set the background color of the body
+body.style.backgroundColor = backgroundColor;
+
 // Generate the maze grid
 var grid = createGrid();
 generateMaze(Math.floor(rowCount/2), Math.floor(colCount/2));
-
 
 
 ///// Event Listeners /////
@@ -83,6 +94,34 @@ window.addEventListener('keyup', function(event) {
 });
 
 
+// Listen for deviceorientation events
+window.addEventListener('deviceorientation', function(event) {
+  angle = event.beta;
+});
+
+// Listen for touchstart events
+window.addEventListener('touchstart', function(event) {
+  // Check the direction of the swipe
+  var touch = event.touches[0];
+  startTouchY = touch.clientY;
+});
+
+// Listen for touchmove events
+window.addEventListener('touchmove', function(event) {
+  // Check the direction of the swipe
+  var touch = event.touches[0];
+  var endTouchY = touch.clientY;
+  
+  if (endTouchY < startTouchY) {
+    // Swipe was up, gravity is upwards
+    gravity = -Math.abs(gravity);
+  } else {
+    // Swipe was down, gravity is downwards
+    gravity = Math.abs(gravity);
+  }
+});
+
+
 
 ///// Classes /////
 
@@ -101,7 +140,7 @@ class Ball {
   draw() {
     ctx.beginPath();
     ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
-    ctx.fillStyle = 'red';
+    ctx.fillStyle = ballColor;
     ctx.fill();
   }
 
@@ -165,8 +204,8 @@ class Ball {
 
 // Create the ball at the center of the 0,0 cell
 const ball = new Ball(offsetX + cellSize/2, offsetY + cellSize/2, cellSize/2.5, 0, 0);
-grid[0][0].color = 'green';
-grid[rowCount-1][colCount-1].color = 'blue';
+grid[0][0].color = startColor;
+grid[rowCount-1][colCount-1].color = endColor;
 
 
 
@@ -183,7 +222,7 @@ function createGrid() {
       row.push({
         isWall: true,
         visited: false,
-        color: 'rgb(100,100,100)',
+        color: wallColor,
         x: j,
         y: i
       });
@@ -204,9 +243,9 @@ function generateMaze(x, y) {
 
     if (nx >= 0 && nx < colCount && ny >= 0 && ny < rowCount && grid[ny][nx].isWall) {
       grid[y + dir[i][1]][x + dir[i][0]].isWall = false;
-      grid[y + dir[i][1]][x + dir[i][0]].color = 'white';
+      grid[y + dir[i][1]][x + dir[i][0]].color = pathColor;
       grid[ny][nx].isWall = false;
-      grid[ny][nx].color = 'white';
+      grid[ny][nx].color = pathColor;
       generateMaze(nx, ny);
     }
   }
