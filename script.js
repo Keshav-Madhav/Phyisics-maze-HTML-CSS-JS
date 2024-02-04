@@ -10,8 +10,8 @@ var width = canvas.width = size;
 var height = canvas.height = size;
 
 // Set the size of the maze grid
-const rowCount = 21;
-const colCount = 21;
+const rowCount = 25;
+const colCount = 25;
 const cellSize = Math.floor(size / (Math.sqrt(2) * rowCount));
 
 const offsetX = (width - colCount * cellSize) / 2;
@@ -19,7 +19,7 @@ const offsetY = (height - rowCount * cellSize) / 2;
 
 // Initialize the rotation angle and speed
 let angle = 0;
-const rotationSpeed = 0.6;
+const rotationSpeed = 1;
 
 // Flags to track whether the 'a' or 'd' key is being held down
 let rotateLeft = false;
@@ -46,7 +46,13 @@ window.addEventListener('keydown', function(event) {
     case 'a':
       rotateLeft = true;
       break;
+    case 'ArrowLeft':
+      rotateLeft = true;
+      break;
     case 'd':
+      rotateRight = true;
+      break;
+    case 'ArrowRight':
       rotateRight = true;
       break;
   }
@@ -69,7 +75,13 @@ window.addEventListener('keyup', function(event) {
     case 'a':
       rotateLeft = false;
       break;
+    case 'ArrowLeft':
+      rotateLeft = false;
+      break;
     case 'd':
+      rotateRight = false;
+      break;
+    case 'ArrowRight':
       rotateRight = false;
       break;
   }
@@ -162,9 +174,9 @@ class Ball {
 }
 
 // Create the ball at the center of the 0,0 cell
-const ball = new Ball(offsetX + cellSize/2, offsetY + cellSize/2, cellSize/2.2, 0, 0);
-
-
+const ball = new Ball(offsetX + cellSize/2, offsetY + cellSize/2, cellSize/2.5, 0, 0);
+grid[0][0].color = 'green';
+grid[rowCount-1][colCount-1].color = 'blue';
 
 ///// Functions /////
 
@@ -178,6 +190,7 @@ function createGrid() {
       row.push({
         isWall: true,
         visited: false,
+        color: 'rgb(100,100,100)',
         x: j,
         y: i
       });
@@ -198,7 +211,9 @@ function generateMaze(x, y) {
 
     if (nx >= 0 && nx < colCount && ny >= 0 && ny < rowCount && grid[ny][nx].isWall) {
       grid[y + dir[i][1]][x + dir[i][0]].isWall = false;
+      grid[y + dir[i][1]][x + dir[i][0]].color = 'white';
       grid[ny][nx].isWall = false;
+      grid[ny][nx].color = 'white';
       generateMaze(nx, ny);
     }
   }
@@ -215,7 +230,7 @@ function drawGrid() {
     for (var j = 0; j < colCount; j++) {
       ctx.beginPath();
       ctx.rect(offsetX + j * cellSize, offsetY + i * cellSize, cellSize, cellSize);
-      ctx.fillStyle = grid[i][j].isWall ? 'rgb(100,100,100)' : 'white';
+      ctx.fillStyle = grid[i][j].color;
       ctx.fill();
       ctx.closePath();
     }
@@ -228,7 +243,51 @@ function draw () {
   ctx.clearRect(0, 0, width, height);
   drawGrid();
   ball.update();
+
+  for (var i = 0; i < rowCount; i++) {
+    for (var j = 0; j < colCount; j++) {
+      if (grid[i][j].isWall) {
+        checkCollision(ball, grid[i][j]);
+      }
+    }
+  }
+
   requestAnimationFrame(draw);
 }
 
 draw();
+
+function checkCollision(ball, cell) {
+  // Calculate the boundaries of the cell
+  const cellLeft = offsetX + cell.x * cellSize;
+  const cellRight = cellLeft + cellSize;
+  const cellTop = offsetY + cell.y * cellSize;
+  const cellBottom = cellTop + cellSize;
+
+  // Check if the ball is within the cell's boundaries
+  if (ball.x - ball.radius < cellRight && ball.x + ball.radius > cellLeft && 
+      ball.y - ball.radius < cellBottom && ball.y + ball.radius > cellTop) {
+
+    // Determine which edge of the cell the ball has collided with
+    const distX = Math.abs(ball.x - cellLeft - cellSize/2);
+    const distY = Math.abs(ball.y - cellTop - cellSize/2);
+
+    if (distX > distY) {
+      // Collision with left or right edge
+      if (ball.x < cellLeft + cellSize/2) {
+        ball.x = cellLeft - ball.radius;
+      } else {
+        ball.x = cellRight + ball.radius;
+      }
+      ball.dx = -ball.dx * ball.elasticity;
+    } else {
+      // Collision with top or bottom edge
+      if (ball.y < cellTop + cellSize/2) {
+        ball.y = cellTop - ball.radius;
+      } else {
+        ball.y = cellBottom + ball.radius;
+      }
+      ball.dy = -ball.dy * ball.elasticity;
+    }
+  }
+}
