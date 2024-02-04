@@ -7,7 +7,6 @@ const body = document.querySelector('body');
 const nextButton = document.getElementById('next');
 nextButton.style.display = 'none';
 const stageDisplay = document.getElementById('stage');
-stageDisplay.innerHTML = (stage + 1) + " of " + (stages.length + 1);
 
 // Set the size of the canvas
 const size = Math.min(window.innerWidth, window.innerHeight);
@@ -17,6 +16,8 @@ var height = canvas.height = size;
 // Predefined stages
 let stages = [[9,9], [9,9], [9,13], [13, 13], [13,13], [13, 17], [17, 17], [21,21], [21, 21], [21, 21] [25, 25], [25, 25] [29, 29], [29, 29], [33, 33], [33, 33], [33, 33], [53, 53], [53, 53], [53, 53], [53, 53]]
 let stage = 0;
+
+stageDisplay.innerHTML = (stage + 1) + " of " + (stages.length + 1);
 
 // Set the size of the maze grid
 let rowCount = stages[0][0];
