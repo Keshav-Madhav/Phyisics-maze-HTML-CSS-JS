@@ -7,6 +7,7 @@ const body = document.querySelector('body');
 const nextButton = document.getElementById('next');
 nextButton.style.display = 'none';
 const stageDisplay = document.getElementById('stage');
+stageDisplay.innerHTML = (stage + 1) + " of " + (stages.length + 1);
 
 // Set the size of the canvas
 const size = Math.min(window.innerWidth, window.innerHeight);
@@ -404,7 +405,7 @@ function resetMaze() {
   cellSize = Math.floor(size / (Math.sqrt(2) * rowCount));
 
   // Display the current stage
-  stageDisplay.innerHTML = (stage + 1) + " of " + stages.length + 1;
+  stageDisplay.innerHTML = (stage + 1) + " of " + (stages.length + 1);
 
   // Recalculate offsetX and offsetY
   offsetX = (width - colCount * cellSize) / 2;
