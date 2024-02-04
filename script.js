@@ -29,7 +29,7 @@ let rotateRight = false;
 let intervalId;
 
 // initialize gravity
-const gravity = 0.3;
+let gravity = 0.3;
 
 // Generate the maze grid
 var grid = createGrid();
@@ -42,19 +42,17 @@ generateMaze(Math.floor(rowCount/2), Math.floor(colCount/2));
 
 // Listen for keydown events
 window.addEventListener('keydown', function(event) {
-  switch (event.key) {
-    case 'a':
+  if( event.key === 'a' || event.key === 'ArrowLeft' ) {
       rotateLeft = true;
-      break;
-    case 'ArrowLeft':
-      rotateLeft = true;
-      break;
-    case 'd':
+  }
+  else if( event.key === 'd' || event.key === 'ArrowRight' ) {
       rotateRight = true;
-      break;
-    case 'ArrowRight':
-      rotateRight = true;
-      break;
+  }
+  else if (event.key === 'w' || event.key === 'ArrowUp') {
+    gravity = -Math.abs(gravity);
+  }
+  else if (event.key === 's' || event.key === 'ArrowDown') {
+    gravity = Math.abs(gravity);
   }
   // Start the interval when a key is pressed
   if (!intervalId) {
@@ -71,19 +69,11 @@ window.addEventListener('keydown', function(event) {
 
 // Listen for keyup events
 window.addEventListener('keyup', function(event) {
-  switch (event.key) {
-    case 'a':
+  if( event.key === 'a' || event.key === 'ArrowLeft' ) {
       rotateLeft = false;
-      break;
-    case 'ArrowLeft':
-      rotateLeft = false;
-      break;
-    case 'd':
+  }
+  if( event.key === 'd' || event.key === 'ArrowRight' ) {
       rotateRight = false;
-      break;
-    case 'ArrowRight':
-      rotateRight = false;
-      break;
   }
   // Clear the interval when both keys are released
   if (!rotateLeft && !rotateRight) {
@@ -178,6 +168,9 @@ const ball = new Ball(offsetX + cellSize/2, offsetY + cellSize/2, cellSize/2.5, 
 grid[0][0].color = 'green';
 grid[rowCount-1][colCount-1].color = 'blue';
 
+
+
+
 ///// Functions /////
 
 
@@ -237,37 +230,25 @@ function drawGrid() {
   }
 }
 
-
-// Function to draw the frame
-function draw () {
-  ctx.clearRect(0, 0, width, height);
-  drawGrid();
-  ball.update();
-
-  for (var i = 0; i < rowCount; i++) {
-    for (var j = 0; j < colCount; j++) {
-      if (grid[i][j].isWall) {
-        checkCollision(ball, grid[i][j]);
-      }
-    }
-  }
-
-  requestAnimationFrame(draw);
-}
-
-draw();
-
-function checkCollision(ball, cell) {
+// Function to check for collisions between the ball and a cell
+function ballCellCollision(ball, cell) {
   // Calculate the boundaries of the cell
   const cellLeft = offsetX + cell.x * cellSize;
   const cellRight = cellLeft + cellSize;
   const cellTop = offsetY + cell.y * cellSize;
   const cellBottom = cellTop + cellSize;
 
-  // Check if the ball is within the cell's boundaries
-  if (ball.x - ball.radius < cellRight && ball.x + ball.radius > cellLeft && 
-      ball.y - ball.radius < cellBottom && ball.y + ball.radius > cellTop) {
+  // Find the closest point to the ball within the cell
+  const closestX = Math.max(cellLeft, Math.min(ball.x, cellRight));
+  const closestY = Math.max(cellTop, Math.min(ball.y, cellBottom));
 
+  // Calculate the distance between the ball's center and this closest point
+  const dx = ball.x - closestX;
+  const dy = ball.y - closestY;
+  const distance = Math.sqrt(dx * dx + dy * dy);
+
+  // If the distance is less than the ball's radius, there's a collision
+  if (distance < ball.radius) {
     // Determine which edge of the cell the ball has collided with
     const distX = Math.abs(ball.x - cellLeft - cellSize/2);
     const distY = Math.abs(ball.y - cellTop - cellSize/2);
@@ -291,3 +272,40 @@ function checkCollision(ball, cell) {
     }
   }
 }
+
+// Function to check for collisions between the ball and the grid
+function checkCollision(){
+  // Calculate the cell in which the ball is currently located
+  var ballCellX = Math.floor((ball.x - offsetX) / cellSize);
+  var ballCellY = Math.floor((ball.y - offsetY) / cellSize);
+
+  // Define the range of cells to check for collisions
+  var startRow = Math.max(0, ballCellY - 1);
+  var endRow = Math.min(rowCount - 1, ballCellY + 1);
+  var startCol = Math.max(0, ballCellX - 1);
+  var endCol = Math.min(colCount - 1, ballCellX + 1);
+
+  // Check the cells within the defined range for collisions
+  for (var i = startRow; i <= endRow; i++) {
+    for (var j = startCol; j <= endCol; j++) {
+      if (grid[i][j].isWall) {
+        ballCellCollision(ball, grid[i][j]);
+      }
+    }
+  }
+}
+
+// Function to draw the grid and the ball
+function draw () {
+  ctx.clearRect(0, 0, width, height);
+
+  drawGrid();
+
+  ball.update();
+
+  checkCollision();
+
+  requestAnimationFrame(draw);
+}
+
+draw();
