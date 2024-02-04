@@ -4,11 +4,19 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Physics Maze</title>
+  <link rel="stylesheet" href="style.css">
 </head>
-<body style="padding: 0; margin: 0; overflow: hidden; position: relative; display: flex; align-items: center; justify-content: center; background-color: rgb(20,50,80); height: 100vh; width: 100vw;">
-  <canvas id="canvas" style="padding: 0; margin: 0; position: absolute;"></canvas>
+<body>
+  <canvas id="canvas"></canvas>
+  <canvas id="confetti_canvas"></canvas>
 
-  <canvas id="confetti_canvas" style="padding: 0; margin: 0; position: absolute;"></canvas>
+  <div class="container">
+    <p class="title">Physics Maze</p>
+
+    <p class="level">Level <span id="level">1</span></p>
+
+    <button id="next" class="next">Next Level</button>
+  </div>
 </body>
 <script src="script.js"></script>
 <script src="confetti.js"></script>

@@ -4,23 +4,30 @@
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 const body = document.querySelector('body');
+const nextButton = document.getElementById('next');
+nextButton.style.display = 'none';
+const stageDisplay = document.getElementById('level');
 
 // Set the size of the canvas
 const size = Math.min(window.innerWidth, window.innerHeight);
 var width = canvas.width = size;
 var height = canvas.height = size;
 
-// Set the size of the maze grid
-const rowCount = 25;
-const colCount = 25;
-const cellSize = Math.floor(size / (Math.sqrt(2) * rowCount));
+// Predefined stages
+let stages = [[9,9], [9,9], [9,13], [13, 13], [13,13], [13, 17], [17, 17], [21,21], [21, 21], [21, 21] [25, 25], [25, 25] [29, 29], [29, 29], [33, 33], [33, 33], [33, 33], [53, 53], [53, 53], [53, 53], [53, 53]]
+let stage = 0;
 
-const offsetX = (width - colCount * cellSize) / 2;
-const offsetY = (height - rowCount * cellSize) / 2;
+// Set the size of the maze grid
+let rowCount = stages[0][0];
+let colCount = stages[0][1];
+let cellSize = Math.floor(size / (Math.sqrt(2) * rowCount));
+
+let offsetX = (width - colCount * cellSize) / 2;
+let offsetY = (height - rowCount * cellSize) / 2;
 
 // Initialize the rotation angle and speed
 let angle = 0;
-const rotationSpeed = 1;
+let rotationSpeed = 1;
 
 // Flags to track whether the 'a' or 'd' key is being held down
 let rotateLeft = false;
@@ -30,7 +37,7 @@ let rotateRight = false;
 let intervalId;
 
 // initialize gravity
-let gravity = 0.3;
+let gravity = 0.4;
 
 let mazeCompletedCheck = false;
 
@@ -55,10 +62,10 @@ generateMaze(Math.floor(rowCount/2), Math.floor(colCount/2));
 
 // Listen for keydown events
 window.addEventListener('keydown', function(event) {
-  if( event.key === 'a' || event.key === 'ArrowLeft' ) {
+  if( event.key === 'a' || event.key === 'ArrowLeft' || event.key === 'A') {
       rotateLeft = true;
   }
-  else if( event.key === 'd' || event.key === 'ArrowRight' ) {
+  else if( event.key === 'd' || event.key === 'ArrowRight' || event.key === 'D') {
       rotateRight = true;
   }
   else if (event.key === 'w' || event.key === 'ArrowUp') {
@@ -67,6 +74,12 @@ window.addEventListener('keydown', function(event) {
   else if (event.key === 's' || event.key === 'ArrowDown') {
     gravity = Math.abs(gravity);
   }
+
+  // Check if shift key is pressed
+  if (event.shiftKey) {
+    rotationSpeed = 0.2;
+  }
+
   // Start the interval when a key is pressed
   if (!intervalId) {
     intervalId = setInterval(function() {
@@ -82,12 +95,18 @@ window.addEventListener('keydown', function(event) {
 
 // Listen for keyup events
 window.addEventListener('keyup', function(event) {
-  if( event.key === 'a' || event.key === 'ArrowLeft' ) {
+  if( event.key === 'a' || event.key === 'ArrowLeft' || event.key === 'A') {
       rotateLeft = false;
   }
-  if( event.key === 'd' || event.key === 'ArrowRight' ) {
+  if( event.key === 'd' || event.key === 'ArrowRight' || event.key === 'D') {
       rotateRight = false;
   }
+
+  // Check if shift key is released
+  if (!event.shiftKey) {
+    rotationSpeed = 1; // Set rotation speed back to 1 if shift is released
+  }
+
   // Clear the interval when both keys are released
   if (!rotateLeft && !rotateRight) {
     clearInterval(intervalId);
@@ -122,6 +141,10 @@ window.addEventListener('touchmove', function(event) {
     gravity = Math.abs(gravity);
   }
 });
+
+
+// Listen for touchend events
+nextButton.addEventListener('click', resetMaze);
 
 
 
@@ -205,7 +228,7 @@ class Ball {
 }
 
 // Create the ball at the center of the 0,0 cell
-const ball = new Ball(offsetX + cellSize/2, offsetY + cellSize/2, cellSize/2.5, 0, 0);
+let ball = new Ball(offsetX + cellSize/2, offsetY + cellSize/2, cellSize/2.5, 0, 0);
 grid[0][0].color = startColor;
 grid[rowCount-1][colCount-1].color = endColor;
 
@@ -340,6 +363,12 @@ function checkCollision(){
 function mazeCompleted() {
   if (!mazeCompletedCheck && ball.x > offsetX + (colCount - 1) * cellSize - ball.radius && ball.y > offsetY + (rowCount - 1) * cellSize - ball.radius) {
     startAnimation();
+    
+    // Increment the stage or loop back to the first stage if at the end
+    stage = (stage + 1) % stages.length;
+
+    // Display the next button
+    nextButton.style.display = 'block';
 
     mazeCompletedCheck = true;
   }
@@ -353,6 +382,46 @@ function mazeCompleted() {
     ctx.fillText("Maze Completed!", -150, 0);
     ctx.restore();
   }
+}
+
+function resetMaze() {
+  // Reset variables
+  rotateLeft = false;
+  rotateRight = false;
+  angle = 0;
+  gravity = Math.abs(gravity);
+  mazeCompletedCheck = false;
+
+  // Clear the interval if it's running
+  if (intervalId) {
+    clearInterval(intervalId);
+    intervalId = null;
+  }
+
+  // Set the size of the maze grid based on the current stage
+  rowCount = stages[stage][0];
+  colCount = stages[stage][1];
+  cellSize = Math.floor(size / (Math.sqrt(2) * rowCount));
+
+  // Recalculate offsetX and offsetY
+  offsetX = (width - colCount * cellSize) / 2;
+  offsetY = (height - rowCount * cellSize) / 2;
+
+  // Create a new grid
+  grid = createGrid();
+
+  // Generate a new maze
+  generateMaze(Math.floor(rowCount / 2), Math.floor(colCount / 2));
+
+  // Create a new ball at the center of the 0,0 cell
+  ball = new Ball(offsetX + cellSize/2, offsetY + cellSize/2, cellSize/2.5, 0, 0);
+
+  // Set start and end colors
+  grid[0][0].color = startColor;
+  grid[rowCount - 1][colCount - 1].color = endColor;
+
+  // Hide the next button
+  nextButton.style.display = 'none';
 }
 
 
