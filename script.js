@@ -14,7 +14,7 @@ var width = canvas.width = size;
 var height = canvas.height = size;
 
 // Predefined stages
-let stages = [[9,9], [9,9], [9,13], [13, 13], [13,13], [13, 17], [17, 17], [21,21], [21, 21], [21, 21], [25, 25], [25, 25], [29, 29], [29, 29], [33, 33], [33, 33], [33, 33], [53, 53]]
+let stages = [[9,9], [9,9], [13, 13], [13,13], [13, 17], [17, 17], [21,21], [25, 25], [29, 29], [33, 33], [53, 53]]
 let stage = 0;
 
 // Initialize the stage variable from local storage, if available
@@ -48,13 +48,16 @@ let intervalId;
 let gravity = 0.4;
 
 let mazeCompletedCheck = false;
+let secondBall = false;
 
 // Colors
 const backgroundColor = 'rgb(38, 84, 124)'; // YInMn Blue
 const wallColor = 'rgb(30, 065, 085)'; // Deep Teal
 const pathColor = 'rgb(200, 225, 245)'; // Light Sky Blue
-const startColor = 'rgb(0, 128, 0)'; // Green
-const endColor = 'rgb(128, 0, 128)'; // Purple
+const startColor1 = 'rgb(0, 128, 0)'; // Green
+const endColor1 = 'rgb(128, 0, 128)'; // Purple
+const startColor2 = 'rgb(255, 165, 0)'; // Orange
+const endColor2 = 'rgb(0, 0, 128)'; // Navy
 const ballColor = 'rgb(255, 105, 180)'; // Hot Pink
 
 // Set the background color of the body
@@ -189,6 +192,8 @@ class Ball {
     this.dy *= this.friction;
 
     this.checkBounds();
+
+    checkCollision(this);
   }
 
   applyGravity() {
@@ -236,12 +241,18 @@ class Ball {
 }
 
 // Create the ball at the center of the 0,0 cell
-let ball = new Ball(offsetX + cellSize/2, offsetY + cellSize/2, cellSize/2.5, 0, 0);
-grid[0][0].color = startColor;
-grid[rowCount-1][colCount-1].color = endColor;
+let ball1 = new Ball(offsetX + cellSize/2, offsetY + cellSize/2, cellSize/2.5, 0, 0);
+grid[0][0].color = startColor1;
+grid[rowCount-1][colCount-1].color = endColor1;
 
+// Create a second ball at the center of the colCount-1, 0 cell
+let ball2;
+if (secondBall) {
+  grid[rowCount-1][0].color = endColor2;
+  grid[0][colCount-1].color = startColor2;
+  ball2 = new Ball(offsetX + (colCount - 1) * cellSize + cellSize/2, offsetY + cellSize/2, cellSize/2.5, 0, 0);
 
-
+}
 
 ///// Functions /////
 
@@ -265,7 +276,7 @@ function createGrid() {
   return grid;
 }
 
-// Function to generate the maze using DFS
+// Function to generate the maze using depth-first search
 function generateMaze(x, y) {
   let dir = [[0, 1], [0, -1], [-1, 0], [1, 0]];
   dir.sort(() => Math.random() - 0.5);
@@ -346,7 +357,7 @@ function ballCellCollision(ball, cell) {
 }
 
 // Function to check for collisions between the ball and the grid
-function checkCollision(){
+function checkCollision(ball){
   // Calculate the cell in which the ball is currently located
   var ballCellX = Math.floor((ball.x - offsetX) / cellSize);
   var ballCellY = Math.floor((ball.y - offsetY) / cellSize);
@@ -369,7 +380,7 @@ function checkCollision(){
 
 // Function to check if the ball has reached the end of the maze
 function mazeCompleted() {
-  if (!mazeCompletedCheck && ball.x > offsetX + (colCount - 1) * cellSize - ball.radius && ball.y > offsetY + (rowCount - 1) * cellSize - ball.radius) {
+  if (!mazeCompletedCheck && ball1.x > offsetX + (colCount - 1) * cellSize - ball1.radius && ball1.y > offsetY + (rowCount - 1) * cellSize - ball1.radius) {
     startAnimation();
     
     // Increment the stage or loop back to the first stage if at the end
@@ -426,11 +437,11 @@ function resetMaze() {
   generateMaze(Math.floor(rowCount / 2), Math.floor(colCount / 2));
 
   // Create a new ball at the center of the 0,0 cell
-  ball = new Ball(offsetX + cellSize/2, offsetY + cellSize/2, cellSize/2.5, 0, 0);
+  ball1 = new Ball(offsetX + cellSize/2, offsetY + cellSize/2, cellSize/2.5, 0, 0);
 
   // Set start and end colors
-  grid[0][0].color = startColor;
-  grid[rowCount - 1][colCount - 1].color = endColor;
+  grid[0][0].color = startColor1;
+  grid[rowCount - 1][colCount - 1].color = endColor1;
 
   // Hide the next button
   nextButton.style.display = 'none';
@@ -444,9 +455,11 @@ function draw () {
 
   drawGrid();
 
-  ball.update();
+  ball1.update();
 
-  checkCollision();
+  if (secondBall) {
+    ball2.update();
+  }
 
   mazeCompleted();
 
