@@ -14,14 +14,20 @@ var width = canvas.width = size;
 var height = canvas.height = size;
 
 // Predefined stages
-let stages = [[9,9], [9,9], [9,13], [13, 13], [13,13], [13, 17], [17, 17], [21,21], [21, 21], [21, 21] [25, 25], [25, 25] [29, 29], [29, 29], [33, 33], [33, 33], [33, 33], [53, 53], [53, 53], [53, 53], [53, 53]]
+let stages = [[9,9], [9,9], [9,13], [13, 13], [13,13], [13, 17], [17, 17], [21,21], [21, 21], [21, 21], [25, 25], [25, 25], [29, 29], [29, 29], [33, 33], [33, 33], [33, 33], [53, 53]]
 let stage = 0;
 
+// Initialize the stage variable from local storage, if available
+let savedStage = localStorage.getItem('currentStage');
+if (savedStage !== null) {
+  stage = parseInt(savedStage);
+}
+// Display the current stage
 stageDisplay.innerHTML = (stage + 1) + " of " + (stages.length + 1);
 
 // Set the size of the maze grid
-let rowCount = stages[0][0];
-let colCount = stages[0][1];
+let rowCount = stages[stage][0];
+let colCount = stages[stage][1];
 let cellSize = Math.floor(size / (Math.sqrt(2) * rowCount));
 
 let offsetX = (width - colCount * cellSize) / 2;
@@ -368,6 +374,7 @@ function mazeCompleted() {
     
     // Increment the stage or loop back to the first stage if at the end
     stage = (stage + 1) % stages.length;
+    localStorage.setItem('currentStage', stage)
 
     // Display the next button
     nextButton.style.display = 'block';
