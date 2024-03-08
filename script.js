@@ -51,14 +51,15 @@ let mazeCompletedCheck = false;
 let secondBall = false;
 
 // Colors
-const backgroundColor = 'rgb(38, 84, 124)'; // YInMn Blue
-const wallColor = 'rgb(30, 065, 085)'; // Deep Teal
-const pathColor = 'rgb(200, 225, 245)'; // Light Sky Blue
-const startColor1 = 'rgb(0, 128, 0)'; // Green
-const endColor1 = 'rgb(128, 0, 128)'; // Purple
-const startColor2 = 'rgb(255, 165, 0)'; // Orange
-const endColor2 = 'rgb(0, 0, 128)'; // Navy
-const ballColor = 'rgb(255, 105, 180)'; // Hot Pink
+const backgroundColor = 'rgb(12, 24, 28)'; // YInMn Blue
+const pathColor = 'rgb(30, 065, 085)'; // Deep Teal
+const wallColor = 'rgb(16, 31, 36)'; // Light Sky Blue
+const endColor1 = 'rgb(0, 128, 0)'; // Green
+const startColor1 = 'rgb(108, 0, 108)'; // Purple
+const endColor2 = 'rgb(255, 165, 0)'; // Orange
+const startColor2 = 'rgb(0, 0, 128)'; // Navy
+const ballColor1 = 'rgb(255, 105, 180)'; // Hot Pink
+const ballColor2 = 'rgb(255, 165, 0)'; // Yellow
 
 // Set the background color of the body
 body.style.backgroundColor = backgroundColor;
@@ -163,7 +164,7 @@ nextButton.addEventListener('click', resetMaze);
 
 
 class Ball {
-  constructor(x, y, radius, dx, dy) {
+  constructor(x, y, radius, dx, dy, color) {
     this.x = x;
     this.y = y;
     this.radius = radius;
@@ -171,12 +172,13 @@ class Ball {
     this.dy = dy;
     this.friction = 0.99;
     this.elasticity = 0.35;
+    this.color = color;
   }
 
   draw() {
     ctx.beginPath();
     ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
-    ctx.fillStyle = ballColor;
+    ctx.fillStyle = this.color;
     ctx.fill();
   }
 
@@ -241,7 +243,7 @@ class Ball {
 }
 
 // Create the ball at the center of the 0,0 cell
-let ball1 = new Ball(offsetX + cellSize/2, offsetY + cellSize/2, cellSize/2.5, 0, 0);
+let ball1 = new Ball(offsetX + cellSize/2, offsetY + cellSize/2, cellSize/2.5, 0, 0, ballColor1);
 grid[0][0].color = startColor1;
 grid[rowCount-1][colCount-1].color = endColor1;
 
@@ -250,7 +252,7 @@ let ball2;
 if (secondBall) {
   grid[rowCount-1][0].color = endColor2;
   grid[0][colCount-1].color = startColor2;
-  ball2 = new Ball(offsetX + (colCount - 1) * cellSize + cellSize/2, offsetY + cellSize/2, cellSize/2.5, 0, 0);
+  ball2 = new Ball(offsetX + (colCount - 1) * cellSize + cellSize/2, offsetY + cellSize/2, cellSize/2.5, 0, 0, ballColor2);
 
 }
 
