@@ -168,6 +168,7 @@ class Ball {
     this.x = x;
     this.y = y;
     this.radius = radius;
+    this.weight = 1;
     this.dx = dx;
     this.dy = dy;
     this.friction = 0.99;
@@ -439,11 +440,19 @@ function resetMaze() {
   generateMaze(Math.floor(rowCount / 2), Math.floor(colCount / 2));
 
   // Create a new ball at the center of the 0,0 cell
-  ball1 = new Ball(offsetX + cellSize/2, offsetY + cellSize/2, cellSize/2.5, 0, 0);
+  ball1 = new Ball(offsetX + cellSize/2, offsetY + cellSize/2, cellSize/2.5, 0, 0, ballColor1);
 
   // Set start and end colors
   grid[0][0].color = startColor1;
   grid[rowCount - 1][colCount - 1].color = endColor1;
+
+  // Create a second ball at the center of the colCount-1, 0 cell
+  if (secondBall) {
+    ball2 = new Ball(offsetX + (colCount - 1) * cellSize + cellSize/2, offsetY + cellSize/2, cellSize/2.5, 0, 0, ballColor2);
+
+    grid[rowCount - 1][0].color = endColor2;
+    grid[0][colCount - 1].color = startColor2;
+  }
 
   // Hide the next button
   nextButton.style.display = 'none';
@@ -461,6 +470,14 @@ function draw () {
 
   if (secondBall) {
     ball2.update();
+
+    var dx = ball1.x - ball2.x;
+    var dy = ball1.y - ball2.y;
+    var distance = Math.sqrt(dx * dx + dy * dy);
+
+    if(distance < ball1.radius + ball2.radius) {
+        ballCollide(ball1, ball2);
+    }
   }
 
   mazeCompleted();
