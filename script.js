@@ -25,7 +25,16 @@ let stages = [
 	[25, 25],
 	[29, 29],
 	[33, 33],
-	[53, 53],
+	[37, 37],
+	[41, 41],
+	[9, 9],
+	[9, 9],
+	[13, 13],
+	[13, 13],
+	[13, 17],
+	[17, 17],
+	[21, 21],
+	[25, 25],
 ];
 let stage = 0;
 
@@ -60,7 +69,9 @@ let intervalId;
 let gravity = 0.4;
 
 let mazeCompletedCheck = false;
-let secondBall = false;
+let ball1Finished = false;
+let ball2Finished = false;
+let secondBall = stage >11 ? true : false;
 
 // Colors
 const backgroundColor = "rgb(12, 24, 28)"; // YInMn Blue
@@ -68,7 +79,7 @@ const pathColor = "rgb(30, 065, 085)"; // Deep Teal
 const wallColor = "rgb(16, 31, 36)"; // Light Sky Blue
 const endColor1 = "rgb(0, 128, 0)"; // Green
 const startColor1 = "rgb(108, 0, 108)"; // Purple
-const endColor2 = "rgb(255, 165, 0)"; // Orange
+const endColor2 = "rgb(205, 105, 0)"; // Orange
 const startColor2 = "rgb(0, 0, 128)"; // Navy
 const ballColor1 = "rgb(255, 105, 180)"; // Hot Pink
 const ballColor2 = "rgb(255, 165, 0)"; // Yellow
@@ -166,7 +177,7 @@ nextButton.addEventListener("click", resetMaze);
 ///// Classes /////
 
 class Ball {
-  constructor(x, y, radius, dx, dy, color) {
+  constructor(x, y, radius, dx, dy, color, number) {
     this.x = x;
     this.y = y;
     this.radius = radius;
@@ -176,14 +187,33 @@ class Ball {
     this.friction = 0.99;
     this.elasticity = 0.35;
     this.color = color;
+		this.number = number;
   }
 
 	draw() {
-		ctx.beginPath();
-		ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
-		ctx.fillStyle = this.color;
-		ctx.fill();
-	}
+    ctx.save(); // Save the current drawing state
+    ctx.translate(this.x, this.y); // Translate to the center of the ball
+    ctx.rotate(-(angle * Math.PI) / 180); // Rotate based on the current angle
+
+    // Draw the ball
+    ctx.beginPath();
+    ctx.arc(0, 0, this.radius, 0, 2 * Math.PI);
+    ctx.fillStyle = this.color;
+    ctx.fill();
+    ctx.closePath();
+
+		if(secondBall){
+			// Draw the number
+			ctx.fillStyle = 'white'; // Color of the number
+			ctx.font = '16px Arial'; // Font size and family
+			ctx.textAlign = 'center'; // Center align the text
+			ctx.textBaseline = 'middle'; // Align text vertically at the middle
+			ctx.fillText(this.number, 0, 0);
+		}
+
+    ctx.restore(); // Restore the previous drawing state
+}
+
 
 	update() {
 		this.draw();
@@ -225,16 +255,16 @@ class Ball {
 
 		// Check if the ball is hitting the left or right boundary of the grid
 		if (this.x - this.radius < gridLeft || this.x + this.radius > gridRight) {
-			if (this.x - this.radius < gridLeft) this.x = gridLeft + this.radius;
-			else this.x = gridRight - this.radius;
+			if (this.x - this.radius < gridLeft) this.x = gridLeft + this.radius + 0.2;
+			else this.x = gridRight - this.radius - 0.2;
 
 			this.dx = -this.dx * this.elasticity;
 		}
 
 		// Check if the ball is hitting the top or bottom boundary of the grid
 		if (this.y - this.radius < gridTop || this.y + this.radius > gridBottom) {
-			if (this.y - this.radius < gridTop) this.y = gridTop + this.radius;
-			else this.y = gridBottom - this.radius;
+			if (this.y - this.radius < gridTop) this.y = gridTop + this.radius + 0.2;
+			else this.y = gridBottom - this.radius -0.2;
 			this.dy = -this.dy * this.elasticity;
 		}
 	}
@@ -247,23 +277,28 @@ let ball1 = new Ball(
 	cellSize / 2.5,
 	0,
 	0,
-	ballColor1
+	ballColor1,
+	"1"
 );
 grid[0][0].color = startColor1;
 grid[rowCount - 1][colCount - 1].color = endColor1;
+grid[rowCount - 1][colCount - 1].number = "1";
+
 
 // Create a second ball at the center of the colCount-1, 0 cell
 let ball2;
 if (secondBall) {
 	grid[rowCount - 1][0].color = endColor2;
 	grid[0][colCount - 1].color = startColor2;
+	grid[rowCount - 1][0].number = "2";
 	ball2 = new Ball(
 		offsetX + (colCount - 1) * cellSize + cellSize / 2,
 		offsetY + cellSize / 2,
 		cellSize / 2.5,
 		0,
 		0,
-		ballColor2
+		ballColor2,
+		"2"
 	);
 }
 
@@ -281,6 +316,7 @@ function createGrid() {
 				color: wallColor,
 				x: j,
 				y: i,
+				number: null,
 			});
 		}
 		grid.push(row);
@@ -326,6 +362,14 @@ function drawGrid() {
 			ctx.fillStyle = grid[i][j].color;
 			ctx.fill();
 			ctx.closePath();
+
+			if (grid[i][j].number && secondBall) {
+				ctx.fillStyle = "white"; // Color of the number
+				ctx.font = "16px Arial"; // Font size and family
+				ctx.textAlign = "center"; // Center align the text
+				ctx.textBaseline = "middle"; // Align text vertically at the middle
+				ctx.fillText(grid[i][j].number, offsetX + j * cellSize + cellSize / 2, offsetY + i * cellSize + cellSize / 2);
+			}
 		}
 	}
 }
@@ -397,7 +441,27 @@ function checkCollision(ball) {
 
 // Function to check if the ball has reached the end of the maze
 function mazeCompleted() {
-	if (
+	if(secondBall){
+		if(!ball1Finished && ball1.x > offsetX + (colCount - 1) * cellSize - ball1.radius && ball1.y > offsetY + (rowCount - 1) * cellSize - ball1.radius){
+			ball1Finished = true;
+		}
+		if(!ball2Finished && ball2.x > offsetX + (colCount - 1) * cellSize - ball2.radius && ball2.y > offsetY + (rowCount - 1) * cellSize - ball2.radius){
+			ball2Finished = true;
+		}
+
+		if(ball1Finished && ball2Finished && !mazeCompletedCheck){
+			startAnimation();
+
+			// Increment the stage or loop back to the first stage if at the end
+			stage = (stage + 1) % stages.length;
+			localStorage.setItem("currentStage", stage);
+
+			// Display the next button
+			nextButton.style.display = "block";
+
+			mazeCompletedCheck = true;
+		}
+	} else if (
 		!mazeCompletedCheck &&
 		ball1.x > offsetX + (colCount - 1) * cellSize - ball1.radius &&
 		ball1.y > offsetY + (rowCount - 1) * cellSize - ball1.radius
@@ -432,6 +496,8 @@ function resetMaze() {
 	angle = 0;
 	gravity = Math.abs(gravity);
 	mazeCompletedCheck = false;
+	ball1Finished = false;
+	ball2Finished = false;
 
 	// Clear the interval if it's running
 	if (intervalId) {
@@ -464,13 +530,21 @@ function resetMaze() {
   grid[0][0].color = startColor1;
   grid[rowCount - 1][colCount - 1].color = endColor1;
 
-  // Create a second ball at the center of the colCount-1, 0 cell
-  if (secondBall) {
-    ball2 = new Ball(offsetX + (colCount - 1) * cellSize + cellSize/2, offsetY + cellSize/2, cellSize/2.5, 0, 0, ballColor2);
-
-    grid[rowCount - 1][0].color = endColor2;
-    grid[0][colCount - 1].color = startColor2;
-  }
+  stage > 11 ? (secondBall = true) : (secondBall = false);
+		if (secondBall) {
+			grid[rowCount - 1][0].color = endColor2;
+			grid[0][colCount - 1].color = startColor2;
+			grid[rowCount - 1][0].number = "2";
+			ball2 = new Ball(
+				offsetX + (colCount - 1) * cellSize + cellSize / 2,
+				offsetY + cellSize / 2,
+				cellSize / 2.5,
+				0,
+				0,
+				ballColor2,
+				"2"
+			);
+		}
 
 	// Hide the next button
 	nextButton.style.display = "none";
