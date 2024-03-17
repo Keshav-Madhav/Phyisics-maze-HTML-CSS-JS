@@ -87,6 +87,9 @@ const ballColor2 = "rgb(255, 165, 0)"; // Yellow
 // Set the background color of the body
 body.style.backgroundColor = backgroundColor;
 
+// FPS display toggle
+let showFPS = false;
+
 // Generate the maze grid
 var grid = createGrid();
 generateMaze(Math.floor(rowCount / 2), Math.floor(colCount / 2));
@@ -103,6 +106,8 @@ window.addEventListener("keydown", function (event) {
 		gravity = -Math.abs(gravity);
 	} else if (event.key === "s" || event.key === "ArrowDown") {
 		gravity = Math.abs(gravity);
+	}	else if (event.key === "f") {
+		showFPS = !showFPS;
 	}
 
 	// Check if shift key is pressed
@@ -571,6 +576,10 @@ function draw() {
   }
 
 	mazeCompleted();
+
+	if (showFPS) {
+		drawFPS(ctx);
+	}
 
 	requestAnimationFrame(draw);
 }
